@@ -39,7 +39,7 @@
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
-            <p class="footer-brand-name">ClinicalSanctuaryPharmacy</p>
+            <p class="footer-brand-name">ApotekOnline</p>
             <p class="footer-brand-desc">Apotek digital terpercaya dengan standar farmasi internasional.</p>
             <div class="footer-social">
               <a href="#" class="social-btn"><span class="material-symbols-outlined">language</span></a>
@@ -57,7 +57,7 @@
         </div>
 
         <div class="footer-bottom">
-          <p>© 2024 Clinical Sanctuary Pharmacy. All rights reserved.</p>
+          <p>© 2024 Apotek Online. All rights reserved.</p>
           <p>Terdaftar di BPOM RI — Izin Apotek No. SIPAP-2024-001</p>
         </div>
       </div>

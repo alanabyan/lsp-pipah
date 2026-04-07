@@ -5,7 +5,7 @@
       <div class="auth-left-inner">
         <router-link to="/" class="auth-brand">
           <span class="brand-icon">⚕</span>
-          <span class="brand-text">Clinical<span class="brand-accent">Sanctuary</span></span>
+          <span class="brand-text">Apotek<span class="brand-accent">Online</span></span>
         </router-link>
 
         <div class="auth-left-content">
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Footer -->
-      <p class="auth-footer">© 2024 Clinical Sanctuary Pharmacy</p>
+      <p class="auth-footer">© 2024 Apotek Online</p>
     </div>
   </div>
 </template>

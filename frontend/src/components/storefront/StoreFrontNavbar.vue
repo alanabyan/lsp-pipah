@@ -4,7 +4,7 @@
       <!-- Logo -->
       <router-link to="/" class="navbar-brand">
         <span class="brand-icon">⚕</span>
-        <span class="brand-text">ClinicalSanctuary<span class="brand-dot">Pharmacy</span></span>
+        <span class="brand-text">Apotek<span class="brand-dot">Online</span></span>
       </router-link>
 
       <!-- Nav Links -->

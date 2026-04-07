@@ -47,7 +47,7 @@
               <div class="detail-head"><span>Nama Obat</span><span>Jumlah</span><span>Harga</span><span>Subtotal</span>
               </div>
               <div v-for="d in detailItems" :key="d.id" class="detail-row">
-                <span class="d-name">{{ d.obat?.nama_obat || '—' }}</span>
+                <span class="d-name">{{ d.nama_obat }}</span>
                 <span class="d-qty">{{ d.jumlah_beli }}</span>
                 <span class="d-price">{{ fmtRp(d.harga_beli) }}</span>
                 <span class="d-sub">{{ fmtRp(d.subtotal) }}</span>
@@ -145,9 +145,23 @@ export default {
       if (this.expanded === orderId) { this.expanded = null; return }
       this.expanded = orderId; this.detailItems = []; this.detailLoading = true
       try {
-        // GET /api/detail-penjualan/nota/{id} — tidak ada di api.php, pakai /detail-penjualan dengan filter
-        const res = await api.get('/detail-penjualan')
-        this.detailItems = (res.data || []).filter(d => d.id_penjualan === orderId)
+        // Fetch detail penjualan + daftar obat secara paralel
+        // GET /api/detail-penjualan  +  GET /api/obat
+        const [detailRes, obatRes] = await Promise.all([
+          api.get('/detail-penjualan'),
+          api.get('/obat'),
+        ])
+
+        const allDetail = detailRes.data || []
+        const allObat = obatRes.data || []
+
+        // Filter detail milik order ini, lalu inject nama_obat dari daftar obat
+        this.detailItems = allDetail
+          .filter(d => d.id_penjualan === orderId)
+          .map(d => ({
+            ...d,
+            nama_obat: allObat.find(o => o.id === d.id_obat)?.nama_obat || `Obat #${d.id_obat}`,
+          }))
       } catch { this.detailItems = [] }
       finally { this.detailLoading = false }
     },

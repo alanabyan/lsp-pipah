@@ -7,7 +7,7 @@
                     <span class="material-symbols-outlined">admin_panel_settings</span>
                 </div>
                 <div>
-                    <p class="brand-name">Clinical Sanctuary</p>
+                    <p class="brand-name">Apotek Online</p>
                     <p class="brand-role">Admin Panel</p>
                 </div>
             </div>

@@ -8,7 +8,7 @@
                     <span class="material-symbols-outlined">admin_panel_settings</span>
                 </div>
                 <h1 class="brand-title">Admin Panel</h1>
-                <p class="brand-sub">Clinical Sanctuary Pharmacy</p>
+                <p class="brand-sub">Apotek Online</p>
             </div>
 
             <!-- Alert -->

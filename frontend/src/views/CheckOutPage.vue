@@ -42,7 +42,8 @@
                     <p class="item-name">{{ item.obat?.nama_obat }}</p>
                     <div class="item-qty">
                       <button class="qty-btn" @click="updateQty(item, item.jumlah_order - 1)">−</button>
-                      <span class="qty-val">{{ item.jumlah_order }}</span>
+                      <input type="number" class="qty-input" :value="item.jumlah_order" min="1"
+                        @change="onQtyInput(item, $event.target.value)" @keyup.enter="$event.target.blur()" />
                       <button class="qty-btn" @click="updateQty(item, item.jumlah_order + 1)">+</button>
                     </div>
                   </div>
@@ -115,7 +116,7 @@
                 @click="confirmOrder">
                 <span v-if="loadingOrder" class="material-symbols-outlined spin">progress_activity</span>
                 <span v-else class="material-symbols-outlined">check_circle</span>
-                {{ loadingOrder ? 'Memproses...' : 'Konfirmasi Pesanan →' }}
+                {{ loadingOrder ? orderStepLabel : 'Konfirmasi Pesanan →' }}
               </button>
 
               <div class="guarantee-note">
@@ -149,6 +150,7 @@ export default {
       cartItems: [], shippingMethods: [], paymentMethods: [],
       selectedShipping: null, selectedPayment: null,
       loadingCart: true, loadingShipping: true, loadingPayment: true, loadingOrder: false,
+      orderStep: '', // 'creating' | 'detail' | 'clearing'
       toast: { show: false, message: '', type: 'success' },
     }
   },
@@ -161,6 +163,14 @@ export default {
     },
     tax() { return Math.round(this.subtotal * 0.05) },
     totalAmount() { return this.subtotal + this.shippingCost + this.tax },
+    orderStepLabel() {
+      const map = {
+        creating: '1/3 Membuat nota...',
+        detail: '2/3 Menyimpan item...',
+        clearing: '3/3 Membersihkan keranjang...',
+      }
+      return map[this.orderStep] || 'Memproses...'
+    },
   },
   mounted() {
     this.fetchCart()
@@ -211,6 +221,12 @@ export default {
         await this.fetchCart()
       } catch (err) { this.showToast(err.response?.data?.message || 'Gagal update jumlah', 'error') }
     },
+
+    async onQtyInput(item, rawValue) {
+      const newQty = parseInt(rawValue, 10)
+      if (!newQty || newQty < 1 || newQty === item.jumlah_order) return
+      await this.updateQty(item, newQty)
+    },
     async removeItem(id) {
       try {
         // DELETE /api/pelanggan/hapus-keranjang/{id}
@@ -223,19 +239,50 @@ export default {
       if (!this.selectedShipping || !this.selectedPayment) return
       const pelanggan = JSON.parse(localStorage.getItem('pelanggan_data') || '{}')
       this.loadingOrder = true
+      this.orderStep = 'creating'
       try {
-        // POST /api/penjualan
-        await api.post('/penjualan', {
+        // STEP 1: Buat nota penjualan → POST /api/penjualan
+        const penjualanRes = await api.post('/penjualan', {
           id_pelanggan: pelanggan.id,
           id_metode_bayar: this.selectedPayment,
           id_jenis_kirim: this.selectedShipping,
           total_bayar: this.totalAmount,
         })
+
+        const idPenjualan = penjualanRes.data?.data?.id
+
+        if (!idPenjualan) {
+          throw new Error('ID penjualan tidak ditemukan dari response server.')
+        }
+
+        // STEP 2: Buat detail penjualan untuk setiap item keranjang
+        // POST /api/detail-penjualan — controller akan otomatis kurangi stok obat
+        this.orderStep = 'detail'
+        const detailPromises = this.cartItems.map(item =>
+          api.post('/detail-penjualan', {
+            id_penjualan: idPenjualan,
+            id_obat: item.id_obat,
+            jumlah_beli: item.jumlah_order,
+          })
+        )
+        await Promise.all(detailPromises)
+
+        // STEP 3: Hapus semua item dari keranjang satu per satu
+        // DELETE /api/pelanggan/hapus-keranjang/{id}
+        this.orderStep = 'clearing'
+        const deletePromises = this.cartItems.map(item =>
+          api.delete(`/pelanggan/hapus-keranjang/${item.id}`)
+        )
+        await Promise.all(deletePromises)
+
+        this.cartItems = []
         this.showToast('Pesanan berhasil dibuat! Silakan upload bukti pembayaran.', 'success')
         setTimeout(() => this.$router.push('/profile?tab=orders'), 1800)
+
       } catch (err) {
-        this.showToast(err.response?.data?.message || 'Gagal membuat pesanan.', 'error')
-      } finally { this.loadingOrder = false }
+        const msg = err.response?.data?.message || err.message || 'Gagal membuat pesanan.'
+        this.showToast(msg, 'error')
+      } finally { this.loadingOrder = false; this.orderStep = '' }
     },
     imageUrl(f) { return `${(import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '')}/storage/obat/${f}` },
     formatRp(v) { return 'Rp ' + Number(v).toLocaleString('id-ID') },
@@ -415,8 +462,8 @@ export default {
 }
 
 .qty-btn {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.05);
@@ -428,6 +475,7 @@ export default {
   font-size: 1rem;
   line-height: 1;
   transition: all 0.15s;
+  flex-shrink: 0;
 }
 
 .qty-btn:hover {
@@ -436,12 +484,31 @@ export default {
   color: #4ade80;
 }
 
-.qty-val {
-  font-size: 0.82rem;
-  font-weight: 700;
+.qty-input {
+  width: 3.5rem;
+  height: 1.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.375rem;
   color: #fff;
-  min-width: 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   text-align: center;
+  outline: none;
+  font-family: inherit;
+  -moz-appearance: textfield;
+  transition: border 0.15s;
+}
+
+.qty-input:focus {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .item-right {
