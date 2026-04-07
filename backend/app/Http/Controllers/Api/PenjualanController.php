@@ -26,7 +26,7 @@ class PenjualanController extends Controller
             'id_pelanggan' => $request->id_pelanggan,
             'id_metode_bayar' => $request->id_metode_bayar,
             'id_jenis_kirim' => $request->id_jenis_kirim,
-            'tgl_penjualan' => $now(),
+            'tgl_penjualan' => now(),
             'total_bayar' => $request->total_bayar ?? 0,
             'status_order' => 'Menunggu Konfirmasi',
         ]);

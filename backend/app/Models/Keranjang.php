@@ -24,7 +24,7 @@ class Keranjang extends Model
 
      public function obat()
     {
-        return $this->belongsTo(DataBarang::class, 'barang_id');
+        return $this->belongsTo(Obat::class, 'id_obat');
     }
 
 

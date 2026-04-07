@@ -8,7 +8,7 @@
       </router-link>
 
       <!-- Nav Links -->
-      <nav class="navbar-nav">
+      <nav class="navbar-nav" :class="{'hidden-nav' : isProfilePage}">
         <a href="#jenis-obat" class="nav-link">Jenis Obat</a>
         <a href="#katalog"    class="nav-link">Katalog</a>
         <a href="#tentang"    class="nav-link">Tentang</a>
@@ -17,19 +17,19 @@
 
       <!-- Actions -->
       <div class="navbar-actions">
-        <button class="icon-btn" title="Cari">
+        <button v-if="!isProfilePage" class="icon-btn" title="Cari">
           <span class="material-symbols-outlined">search</span>
         </button>
-        <router-link to="/cart" class="icon-btn cart-btn" title="Keranjang">
+        <router-link v-if="!isProfilePage" to="/cart" class="icon-btn cart-btn" title="Keranjang">
           <span class="material-symbols-outlined">shopping_cart</span>
           <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
         </router-link>
         <router-link v-if="!isLoggedIn" to="/login" class="btn btn--outline-white">Masuk</router-link>
         <router-link v-if="!isLoggedIn" to="/register" class="btn btn--white">Daftar</router-link>
-        <div v-if="isLoggedIn" class="user-menu">
+        <router-link to="/profile" v-if="isLoggedIn" class="user-menu profile">
           <span class="material-symbols-outlined">account_circle</span>
           <button class="btn btn--outline-white" @click="logout">Keluar</button>
-        </div>
+        </router-link>
       </div>
     </div>
   </header>
@@ -53,6 +53,9 @@ export default {
     isLoggedIn() {
       return !!localStorage.getItem('pelanggan_token')
     },
+    isProfilePage() {
+      return this.$route.path.startsWith('/profile')
+    }
   },
 
   mounted() {
@@ -86,6 +89,10 @@ export default {
   background: rgba(2, 28, 15, 0.97);
   backdrop-filter: blur(16px);
   box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+.hidden-nav {
+  visibility: hidden;
+  /* tetap ambil space tapi tidak terlihat */
 }
 .navbar-inner {
   max-width: 1200px; margin: 0 auto;
@@ -134,6 +141,11 @@ export default {
   font-size: 0.6rem; font-weight: 800;
   width: 1rem; height: 1rem; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+}
+
+.profile {
+  color: white;
+  text-decoration: none;
 }
 
 .btn {

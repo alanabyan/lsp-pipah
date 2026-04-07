@@ -30,9 +30,10 @@ class PembayaranController extends Controller
             $file = $request->file('bukti_bayar');
             // Buat nama file unik: idpenjualan_timestamp.ext
             $nama_file = $request->id_penjualan . '_' . time() . '.' . $file->getClientOriginalExtension();
-            
+
             // Simpan ke folder: storage/app/public/bukti_pembayaran
-            $file->storeAs('public/bukti_pembayaran', $nama_file);
+            $path = $file->store('bukti_pembayaran', 'public');
+            $nama_file = basename($path);
         }
 
         $pembayaran = Pembayaran::create([

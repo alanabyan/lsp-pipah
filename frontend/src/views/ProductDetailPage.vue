@@ -95,7 +95,7 @@
               </button>
             </div>
 
-            <router-link to="/checkout" class="btn btn--buy-now">
+            <router-link :disabled="obat.stok === 0 || adding" @click="addToCart" to="/checkout" class="btn btn--buy-now">
               <span class="material-symbols-outlined">bolt</span>
               Beli Sekarang
             </router-link>
@@ -209,7 +209,7 @@ export default {
       if (!token) { this.$router.push('/login'); return }
       this.adding = true
       try {
-        await api.post('/keranjang', { id_obat: this.obat.id, jumlah_order: this.qty })
+        await api.post('/pelanggan/tambah-keranjang', { id_obat: this.obat.id, jumlah_order: this.qty })
         this.showToast(`${this.obat.nama_obat} ditambahkan ke keranjang!`, 'success')
         await this.fetchCartCount()
       } catch (err) {
@@ -233,7 +233,7 @@ export default {
       const token = localStorage.getItem('pelanggan_token')
       if (!token) return
       try {
-        const res = await api.get('/keranjang')
+        const res = await api.get('/pelanggan/keranjang')
         this.cartCount = res.data?.length ?? 0
       } catch { this.cartCount = 0 }
     },

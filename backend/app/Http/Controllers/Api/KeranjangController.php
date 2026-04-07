@@ -9,9 +9,22 @@ use App\Models\Obat;
 
 class KeranjangController extends Controller
 {
-    public function index(Request $request){
-        return Keranjang::with('obat')->where('id_pelanggan', 
-        $request->user('pelanggan')->id)->get();
+    public function index(Request $request)
+    {
+        try {
+            $user = $request->user('pelanggan');
+
+            return response()->json([
+                'user' => $user,
+                'keranjang' => Keranjang::with('obat')
+                    ->where('id_pelanggan', $user?->id)
+                    ->get()
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
