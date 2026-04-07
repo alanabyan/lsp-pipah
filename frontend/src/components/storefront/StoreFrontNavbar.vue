@@ -26,10 +26,10 @@
         </router-link>
         <router-link v-if="!isLoggedIn" to="/login" class="btn btn--outline-white">Masuk</router-link>
         <router-link v-if="!isLoggedIn" to="/register" class="btn btn--white">Daftar</router-link>
-        <router-link to="/profile" v-if="isLoggedIn" class="user-menu profile">
-          <span class="material-symbols-outlined">account_circle</span>
-          <button class="btn btn--outline-white" @click="logout">Keluar</button>
-        </router-link>
+        <div v-if="isLoggedIn" class="user-menu profile" @click.self="goToProfile" style="cursor:pointer">
+          <span class="material-symbols-outlined" @click="goToProfile">account_circle</span>
+          <button class="btn btn--outline-white" @click.stop="logout">Keluar</button>
+        </div>
       </div>
     </div>
   </header>
@@ -46,12 +46,17 @@ export default {
   data() {
     return {
       scrolled: false,
+      // Buat reaktif — bukan computed yang baca localStorage langsung
+      loggedIn: !!localStorage.getItem('pelanggan_token') || !!localStorage.getItem('admin_token'),
     }
   },
 
   computed: {
     isLoggedIn() {
-      return !!localStorage.getItem('pelanggan_token')
+      return this.loggedIn
+    },
+    isAdmin() {
+      return !!localStorage.getItem('admin_token')
     },
     isProfilePage() {
       return this.$route.path.startsWith('/profile')
@@ -60,18 +65,31 @@ export default {
 
   mounted() {
     window.addEventListener('scroll', this.handleScroll)
+    // Supaya reaktif kalau token berubah di tab lain
+    window.addEventListener('storage', this.syncAuth)
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll)
+    window.removeEventListener('storage', this.syncAuth)
   },
 
   methods: {
     handleScroll() {
       this.scrolled = window.scrollY > 40
     },
+    syncAuth() {
+      this.loggedIn = !!localStorage.getItem('pelanggan_token') || !!localStorage.getItem('admin_token')
+    },
+    goToProfile() {
+      if (this.isAdmin) {
+        this.$router.push('/admin/dashboard')
+      } else {
+        this.$router.push('/profile')
+      }
+    },
     logout() {
       localStorage.removeItem('pelanggan_token')
-      window.location.reload()
+      this.loggedIn = false
       this.$router.push('/')
     },
   },

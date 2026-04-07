@@ -43,7 +43,7 @@
                     <h2 class="page-title">{{ pageTitle }}</h2>
                 </div>
                 <div class="topbar-right">
-                    <router-link to="/" target="_blank" class="topbar-btn" title="Lihat Toko">
+                    <router-link to="/" class="topbar-btn" title="Lihat Toko">
                         <span class="material-symbols-outlined">storefront</span>
                         Lihat Toko
                     </router-link>
