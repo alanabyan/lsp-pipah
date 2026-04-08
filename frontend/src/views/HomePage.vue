@@ -53,7 +53,7 @@ export default {
       const token = localStorage.getItem('pelanggan_token')
       if (!token) return
       try {
-        const res = await api.get('/keranjang')
+        const res = await api.get('/pelanggan/keranjang')
         this.cartCount = res.data?.length ?? 0
       } catch {
         this.cartCount = 0
