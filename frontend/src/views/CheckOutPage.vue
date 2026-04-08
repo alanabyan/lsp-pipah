@@ -242,7 +242,7 @@ export default {
       this.orderStep = 'creating'
       try {
         // STEP 1: Buat nota penjualan → POST /api/penjualan
-        const penjualanRes = await api.post('/penjualan', {
+        const penjualanRes = await api.post('/pelanggan/checkout-sekarang', {
           id_pelanggan: pelanggan.id,
           id_metode_bayar: this.selectedPayment,
           id_jenis_kirim: this.selectedShipping,
@@ -259,7 +259,7 @@ export default {
         // POST /api/detail-penjualan — controller akan otomatis kurangi stok obat
         this.orderStep = 'detail'
         const detailPromises = this.cartItems.map(item =>
-          api.post('/detail-penjualan', {
+          api.post('/pelanggan/detail-penjualan', {
             id_penjualan: idPenjualan,
             id_obat: item.id_obat,
             jumlah_beli: item.jumlah_order,

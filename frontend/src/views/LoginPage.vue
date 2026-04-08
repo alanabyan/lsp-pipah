@@ -120,9 +120,15 @@
 
 <script>
 import api from '@/services/api.js'
+import { useAuth } from '@/composables/useAuth.js' // 1. Import useAuth
 
 export default {
   name: 'LoginPage',
+
+  setup() {
+    const { setAuth } = useAuth() // 2. Ambil fungsi setAuth
+    return { setAuth }
+  },
 
   data() {
     return {
@@ -139,25 +145,31 @@ export default {
       this.loading = true
       this.errorMsg = null
 
-      // Tolak login jika menggunakan email admin
-      if (this.form.email.toLowerCase() === 'admin@apotekonline.com') {
-        this.errorMsg = 'Email ini adalah akun admin. Silakan login melalui panel admin.'
-        this.loading = false
-        return
-      }
-
       try {
         const res = await api.post('/pelanggan/login', {
           email: this.form.email,
           password: this.form.password,
         })
-        localStorage.setItem('pelanggan_token', res.data.token)
-        localStorage.setItem('pelanggan_data', JSON.stringify(res.data.pelanggan))
-        this.$router.push('/')
+
+        // 3. Gunakan setAuth dari composable agar state global terupdate
+        // res.data.user atau res.data.pelanggan (sesuaikan dengan response backendmu)
+        const userData = res.data.user || res.data.pelanggan
+        this.setAuth(res.data.token, userData)
+
+        // 4. Cek jika ternyata yang login adalah admin/staff di halaman depan
+        // Kita arahkan ke dashboard jika dia punya jabatan, kalau tidak ke home
+        if (userData.jabatan && userData.jabatan !== 'pelanggan') {
+           this.$router.push('/admin/dashboard')
+        } else {
+           this.$router.push('/')
+        }
+
       } catch (err) {
         if (err.response?.status === 422) {
           const errors = err.response.data?.errors
           this.errorMsg = Object.values(errors || {}).flat()[0] || 'Email atau password salah.'
+        } else if (err.response?.status === 401) {
+          this.errorMsg = 'Email atau password salah.'
         } else {
           this.errorMsg = err.response?.data?.message || 'Gagal login. Coba lagi.'
         }

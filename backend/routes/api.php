@@ -1,5 +1,8 @@
 <?php
+
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PelangganAuthController;
+use App\Http\Controllers\Api\StaffAuthController; 
 use App\Http\Controllers\Api\JenisObatController;
 use App\Http\Controllers\Api\ObatController;
 use App\Http\Controllers\Api\KeranjangController;
@@ -12,12 +15,14 @@ use App\Http\Controllers\Api\PenjualanController;
 use App\Http\Controllers\Api\DetailPenjualanController;
 use App\Http\Controllers\Api\PengirimanController;
 use App\Http\Controllers\Api\PembayaranController;
-use Illuminate\Support\Facades\Route;
+
 
 Route::prefix('pelanggan')->group(function () {
+    // Public Pelanggan
     Route::post('/register', [PelangganAuthController::class, 'register']);
     Route::post('/login', [PelangganAuthController::class, 'login']);
 
+    // Auth Pelanggan (Hanya untuk pembeli)
     Route::middleware('auth:pelanggan')->group(function () {
         Route::get('/me', [PelangganAuthController::class, 'me']);
         Route::post('/logout', [PelangganAuthController::class, 'logout']);
@@ -25,59 +30,74 @@ Route::prefix('pelanggan')->group(function () {
         Route::post('/tambah-keranjang', [KeranjangController::class, 'store']);
         Route::post('/edit-keranjang/{id}', [KeranjangController::class, 'update']);
         Route::delete('/hapus-keranjang/{id}', [KeranjangController::class, 'destroy']);
+        Route::post('/checkout-sekarang', [PenjualanController::class, 'store']);
+        Route::post('/detail-penjualan', [DetailPenjualanController::class, 'store']);
+        Route::post('/bayar', [PembayaranController::class, 'store']);
     });
 });
 
 
-Route::get('/jenis-obat', [JenisObatController::class, 'index']);
-Route::post('/jenis-obat', [JenisObatController::class, 'store']);
-Route::delete('/jenis-obat/{id}', [JenisObatController::class, 'destroy']);
+// Login khusus internal (Admin, Apoteker, Kasir, dll)
+Route::post('/staff/login', [StaffAuthController::class, 'login']);
 
-Route::get('/obat', [ObatController::class, 'index']);
-Route::post('/tambah-obat', [ObatController::class, 'store']);
-Route::post('/edit-obat/{id}', [ObatController::class, 'update']);
-Route::delete('/hapus-obat/{id}', [ObatController::class, 'destroy']);
+    Route::get('/obat', [ObatController::class, 'index']);
+    Route::get('/jenis-obat', [JenisObatController::class, 'index']);
 
-Route::get('/metode-bayar', [MetodePembayaranController::class, 'index']);
-Route::post('/metode-bayar', [MetodePembayaranController::class, 'store']);
-Route::delete('/metode-bayar/{id}', [MetodePembayaranController::class, 'destroy']);
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::get('/distributor', [DistributorController::class, 'index']);   
-Route::get('/distributor/{id}', [DistributorController::class, 'show']);  
-Route::post('/distributor', [DistributorController::class, 'store']);     
-Route::delete('/distributor/{id}', [DistributorController::class, 'destroy']); 
+    Route::get('/distributor', [DistributorController::class, 'index']);
+    Route::get('/metode-bayar', [MetodePembayaranController::class, 'index']);
+    Route::get('/jenis-pengiriman', [JenisPengirimanController::class, 'index']);
 
-Route::get('/jenis-pengiriman', [JenisPengirimanController::class, 'index']);
-Route::post('/jenis-pengiriman', [JenisPengirimanController::class, 'store']);
-Route::get('/jenis-pengiriman/{id}', [JenisPengirimanController::class, 'show']);
-Route::delete('/jenis-pengiriman/{id}', [JenisPengirimanController::class, 'destroy']);
 
-Route::get('/pembelian', [PembelianController::class, 'index']);
-Route::post('/pembelian', [PembelianController::class, 'store']);
-Route::get('/pembelian/{id}', [PembelianController::class, 'show']);
-Route::put('/pembelian/{id}', [PembelianController::class, 'update']); 
-Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy']); 
+    Route::middleware('checkRole:admin,apoteker')->group(function () {
 
-Route::post('/detail-pembelian', [DetailPembelianController::class, 'store']);
-Route::get('/detail-pembelian/nota/{id_pembelian}', [DetailPembelianController::class, 'showByNota']);
-Route::delete('/detail-pembelian/{id}', [DetailPembelianController::class, 'destroy']);
+        Route::post('/jenis-obat', [JenisObatController::class, 'store']);
+        Route::delete('/jenis-obat/{id}', [JenisObatController::class, 'destroy']);
+        
+        // Obat
+        Route::post('/tambah-obat', [ObatController::class, 'store']);
+        Route::post('/edit-obat/{id}', [ObatController::class, 'update']);
+        Route::delete('/hapus-obat/{id}', [ObatController::class, 'destroy']);
 
-Route::get('/penjualan', [PenjualanController::class, 'index']);
-Route::post('/penjualan', [PenjualanController::class, 'store']);
-Route::get('/penjualan/{id}', [PenjualanController::class, 'show']);
-Route::put('/penjualan/{id}', [PenjualanController::class, 'update']); 
-Route::delete('/penjualan/{id}', [PenjualanController::class, 'destroy']);
+        // Distributor
+        Route::post('/distributor', [DistributorController::class, 'store']);
+        Route::get('/distributor/{id}', [DistributorController::class, 'show']);
+        Route::delete('/distributor/{id}', [DistributorController::class, 'destroy']);
+        
+        // Pembelian Stok
+    });
 
-Route::get('/detail-penjualan', [DetailPenjualanController::class, 'index']);
-Route::post('/detail-penjualan', [DetailPenjualanController::class, 'store']);
-Route::post('/detail-penjualan/{id}', [DetailPenjualanController::class, 'update']); 
-Route::delete('/detail-penjualan/{id}', [DetailPenjualanController::class, 'destroy']);
+    // Route yang boleh diakses Admin, Kasir, DAN Pelanggan (Hanya Riwayat & Detail)
+Route::middleware('checkRole:admin,kasir,pelanggan')->group(function () {
+    Route::get('/penjualan', [PenjualanController::class, 'index']);
+    Route::get('/penjualan/{id}', [PenjualanController::class, 'show']);
+});
 
-Route::get('/pengiriman', [PengirimanController::class, 'index']);
-Route::post('/pengiriman', [PengirimanController::class, 'store']);
-Route::put('/pengiriman-update/{id}', [PengirimanController::class, 'update']);
-Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy']);
+// Route yang BENAR-BENAR KHUSUS Staff (Admin & Kasir)
+Route::middleware('checkRole:admin,kasir')->group(function () {
+    Route::post('/penjualan', [PenjualanController::class, 'store']); // Biasanya pelanggan pakai checkout-sekarang kan?
+    Route::get('/pembayaran', [PembayaranController::class, 'index']);
+    Route::post('/pembayaran-konfirmasi/{id}', [PembayaranController::class, 'updateStatus']);
+    Route::get('/pembelian', [PembelianController::class, 'index']);
+    Route::post('/pembelian', [PembelianController::class, 'store']);
+    Route::get('/pembelian/{id}', [PembelianController::class, 'show']);
+    Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy']);
+});
 
-Route::get('/pembayaran', [PembayaranController::class, 'index']);
-Route::post('/pembayaran', [PembayaranController::class, 'store']);
-Route::post('/pembayaran-konfirmasi/{id}', [PembayaranController::class, 'updateStatus']);
+    // --- D. KHUSUS KARYAWAN/KURIR (Logistik) ---
+    Route::middleware('checkRole:admin,karyawan')->group(function () {
+        Route::get('/pengiriman', [PengirimanController::class, 'index']);
+        Route::post('/pengiriman', [PengirimanController::class, 'store']);
+        Route::put('/pengiriman-update/{id}', [PengirimanController::class, 'update']);
+        
+        Route::post('/jenis-pengiriman', [JenisPengirimanController::class, 'store']);
+        Route::delete('/jenis-pengiriman/{id}', [JenisPengirimanController::class, 'destroy']);
+    });
+
+    // --- E. KHUSUS PEMILIK (Laporan Keuangan) ---
+    Route::middleware('checkRole:admin,pemilik')->group(function () {
+        Route::get('/laporan-pembelian', [PembelianController::class, 'index']);
+        Route::get('/laporan-penjualan', [PenjualanController::class, 'index']);
+    });
+});

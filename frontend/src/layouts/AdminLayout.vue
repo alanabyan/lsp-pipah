@@ -14,11 +14,10 @@
 
             <nav class="sidebar-nav">
                 <p class="nav-section-label">Manajemen</p>
-                <router-link v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item"
-                    active-class="nav-item--active">
-                    <span class="material-symbols-outlined">{{ item.icon }}</span>
-                    {{ item.label }}
-                </router-link>
+                <router-link v-for="item in filteredNavItems" :key="item.to" :to="item.to" class="nav-item"
+                active-class="nav-item--active">
+                <span class="material-symbols-outlined">{{ item.icon }}</span>
+                {{ item.label }}</router-link>
             </nav>
 
             <div class="sidebar-footer">
@@ -26,7 +25,7 @@
                     <span class="material-symbols-outlined admin-avatar">manage_accounts</span>
                     <div>
                         <p class="admin-name">{{ adminData?.name || 'Administrator' }}</p>
-                        <p class="admin-email">{{ adminData?.email || '' }}</p>
+                        <p class="admin-email" style="text-transform: capitalize;">{{ adminData?.jabatan }}</p>
                     </div>
                 </div>
                 <button class="btn-logout" @click="logout">
@@ -49,7 +48,7 @@
                     </router-link>
                     <div class="admin-badge">
                         <span class="material-symbols-outlined">verified_user</span>
-                        Admin
+                        {{ displayJabatan }}
                     </div>
                 </div>
             </header>
@@ -72,20 +71,29 @@ export default {
     },
     data() {
         return {
-            adminData: adminAuth.getData(),
-            navItems: [
-                { label: 'Dashboard', icon: 'dashboard', to: '/admin/dashboard' },
-                { label: 'Jenis Obat', icon: 'category', to: '/admin/jenis-obat' },
-                { label: 'Obat ', icon: 'medication', to: '/admin/obat' },
-                { label: 'Distributor', icon: 'local_shipping', to: '/admin/distributor' },
-                { label: 'Pembelian', icon: 'shopping_cart', to: '/admin/pembelian' },
-                { label: 'Detail Pembelian', icon: 'receipt_long', to: '/admin/detail-pembelian' },
-                { label: 'Penjualan', icon: 'point_of_sale', to: '/admin/penjualan' },
-                { label: 'Pembayaran', icon: 'payments', to: '/admin/pembayaran' },
-                { label: 'Pengiriman', icon: 'local_shipping', to: '/admin/pengiriman' },
-                { label: 'Metode Pembayaran', icon: 'credit_card', to: '/admin/metode-pembayaran' },
-                { label: 'Jenis Pengiriman', icon: 'conveyor_belt', to: '/admin/jenis-pengiriman' },
-            ],
+            adminData: adminAuth.getUser(), 
+            allNavItems: [
+    { label: 'Dashboard', icon: 'dashboard', to: '/admin/dashboard', roles: ['admin','pemilik'] },
+    { label: 'Jenis Obat', icon: 'category', to: '/admin/jenis-obat', roles: ['admin', 'apoteker'] },
+    { label: 'Obat', icon: 'medication', to: '/admin/obat', roles: ['admin'] },
+    { label: 'Distributor', icon: 'local_shipping', to: '/admin/distributor', roles: ['admin', 'karyawan'] },
+    { label: 'Pembelian', icon: 'shopping_cart', to: '/admin/pembelian', roles: ['kasir', 'karyawan'] },
+    { label: 'Penjualan', icon: 'point_of_sale', to: '/admin/penjualan', roles: ['kasir',] },
+    { label: 'Pembayaran', icon: 'payments', to: '/admin/pembayaran', roles: ['kasir'] },
+    { label: 'Pengiriman', icon: 'local_shipping', to: '/admin/pengiriman', roles: ['karyawan'] },
+    { label: 'Metode Pembayaran', icon: 'credit_card', to: '/admin/metode-pembayaran', roles: ['kasir'] },
+    { label: 'Jenis Pengiriman', icon: 'conveyor_belt', to: '/admin/jenis-pengiriman', roles: ['karyawan'] },
+],
+        }
+    },
+    computed: {
+        // Menu yang akan tampil di sidebar sesuai jabatan
+        filteredNavItems() {
+            return this.allNavItems.filter(item => adminAuth.hasRole(item.roles));
+        },
+        // Judul jabatan untuk tampilan badge (Admin, Apoteker, dll)
+        displayJabatan() {
+            return this.adminData?.jabatan?.toUpperCase() || 'STAFF';
         }
     },
     methods: {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Penjualan;
+use App\Models\Obat;
 
 class PenjualanController extends Controller
 {
@@ -73,6 +74,38 @@ class PenjualanController extends Controller
             'data' => $penjualan
         ]);
     }
+
+    public function batalkanPesanan($id)
+{
+    try {
+        // Cari penjualan beserta detailnya
+        $penjualan = Penjualan::with('detailPenjualan')->findOrFail($id);
+
+        // Loop untuk mengembalikan stok
+        foreach ($penjualan->detailPenjualan as $detail) {
+            $obat = Obat::find($detail->id_obat);
+            if ($obat) {
+                // Pastikan menggunakan 'jumlah_beli' sesuai tabel detail kamu
+                $obat->stok += $detail->jumlah_beli;
+                $obat->save();
+            }
+        }
+
+        // Hapus detail lalu hapus data penjualannya
+        $penjualan->detailPenjualan()->delete();
+        $penjualan->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pesanan berhasil dibatalkan dan stok dikembalikan!'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Gagal: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
     // 5. Hapus nota penjualan
     public function destroy($id)

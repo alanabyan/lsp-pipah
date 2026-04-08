@@ -130,17 +130,29 @@ export default {
   mounted() { this.fetchOrders() },
   methods: {
     async fetchOrders() {
-      this.loading = true
-      try {
-        // GET /api/penjualan
-        const res = await api.get('/penjualan')
-        const p = JSON.parse(localStorage.getItem('pelanggan_data') || '{}')
-        this.orders = (res.data || [])
-          .filter(o => o.id_pelanggan === p.id)
-          .sort((a, b) => new Date(b.tgl_penjualan) - new Date(a.tgl_penjualan))
-      } catch { this.orders = [] }
-      finally { this.loading = false }
-    },
+  this.loading = true
+  try {
+    const res = await api.get('/penjualan')
+    // Ambil data user dari localStorage
+    const p = JSON.parse(localStorage.getItem('pelanggan_data') || '{}')
+    
+    // Debugging: Cek apakah ID pelanggan terbaca
+    console.log("ID Pelanggan di LocalStorage:", p.id)
+    console.log("Data dari API:", res.data)
+
+    this.orders = (res.data || [])
+      .filter(o => {
+        // Pastikan kedua ID ada dan ubah ke Number untuk memastikan kecocokan
+        return p.id && Number(o.id_pelanggan) === Number(p.id)
+      }) 
+      .sort((a, b) => new Date(b.tgl_penjualan) - new Date(a.tgl_penjualan))
+  } catch (err) { 
+    console.error("Gagal mengambil history:", err)
+    this.orders = [] 
+  } finally { 
+    this.loading = false 
+  }
+},
     async toggleDetail(orderId) {
       if (this.expanded === orderId) { this.expanded = null; return }
       this.expanded = orderId; this.detailItems = []; this.detailLoading = true
@@ -166,16 +178,26 @@ export default {
       finally { this.detailLoading = false }
     },
     async cancelOrder(order) {
-      if (!confirm('Batalkan pesanan ini?')) return
-      this.cancelling = order.id
-      try {
-        // PUT /api/penjualan/{id}
-        await api.put(`/penjualan/${order.id}`, { status_order: 'Dibatalkan Pembeli' })
-        this.showT('Pesanan berhasil dibatalkan.')
-        await this.fetchOrders()
-      } catch (err) { this.showT(err.response?.data?.message || 'Gagal membatalkan.', 'error') }
-      finally { this.cancelling = null }
-    },
+  if (!confirm('Yakin ingin membatalkan pesanan ini? Stok obat akan dikembalikan.')) return
+  
+  this.cancelling = order.id
+  try {
+    // 1. Panggil API dengan method DELETE ke route pembatalan
+    // Pastikan routenya sesuai dengan yang kamu buat di api.php nanti
+    await api.delete(`/penjualan/${order.id}/batal`)
+    
+    // 2. Tampilkan notifikasi sukses
+    this.showT('Pesanan dibatalkan dan stok telah dikembalikan.', 'success')
+    
+    // 3. Ambil ulang data agar daftar di layar langsung ter-update (hilang dari list)
+    await this.fetchOrders()
+  } catch (err) { 
+    console.error("Gagal batal:", err)
+    this.showT(err.response?.data?.message || 'Gagal membatalkan pesanan.', 'error') 
+  } finally { 
+    this.cancelling = null 
+  }
+},
     openUpload(order) {
       this.uploadTarget = order
       this.uploadForm = { jumlah_bayar: order.total_bayar, file: null }
@@ -192,7 +214,7 @@ export default {
         fd.append('jumlah_bayar', this.uploadForm.jumlah_bayar)
         fd.append('bukti_bayar', this.uploadForm.file)
         // POST /api/pembayaran
-        await api.post('/pembayaran', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await api.post('/pelanggan/bayar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
         this.showUploadModal = false
         this.showT('Bukti pembayaran berhasil diupload! Menunggu konfirmasi admin.')
         await this.fetchOrders()

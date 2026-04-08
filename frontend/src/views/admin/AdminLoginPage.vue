@@ -54,7 +54,7 @@
             <!-- Info box -->
             <div class="info-box">
                 <span class="material-symbols-outlined">info</span>
-                <p>Hanya akun dengan email <strong>admin@apotekonline.com</strong> yang dapat mengakses panel ini.</p>
+                <p>Hanya akun <strong>Staff Internal</strong></p>
             </div>
 
             <router-link to="/" class="back-link">
@@ -81,7 +81,7 @@ export default {
     },
 
     mounted() {
-        // Jika sudah login sebagai admin, langsung ke dashboard
+        // Jika sudah login sebagai staff, langsung lempar ke dashboard
         if (adminAuth.isLoggedIn()) {
             this.$router.push('/admin/dashboard')
         }
@@ -92,42 +92,36 @@ export default {
             this.loading = true
             this.errorMsg = null
 
-            // --- Step 1: Cek email dulu sebelum hit API ---
-            if (!adminAuth.isAdminEmail(this.form.email)) {
-                this.errorMsg = 'Akses ditolak. Email ini bukan akun admin.'
-                this.loading = false
-                return
-            }
-
             try {
-                // --- Step 2: Login via endpoint pelanggan yang sama ---
-                // POST /api/pelanggan/login
-                const res = await adminApi.post('/pelanggan/login', {
+                // 1. Hit API login (endpoint tetap sama /pelanggan/login atau /login)
+                const res = await adminApi.post('/staff/login', {
                     email: this.form.email,
                     password: this.form.password,
                 })
 
-                const { token, pelanggan } = res.data
+                // Ambil data user & token (sesuaikan nama 'pelanggan'/'user' dengan response backendmu)
+                const { token } = res.data
+                const userData = res.data.user || res.data.pelanggan
 
-                // --- Step 3: Double-check email dari response ---
-                if (!adminAuth.isAdminEmail(pelanggan?.email)) {
-                    this.errorMsg = 'Akses ditolak. Akun ini bukan admin.'
+                // 2. CEK JABATAN: Jika dia cuma pelanggan biasa, tendang keluar!
+                if (!userData.jabatan || userData.jabatan.toLowerCase() === 'pelanggan') {
+                    this.errorMsg = 'Akses ditolak. Akun ini tidak memiliki hak akses ke Panel Admin.'
                     this.loading = false
                     return
                 }
 
-                // --- Step 4: Simpan sesi admin (terpisah dari sesi pelanggan) ---
-                adminAuth.setSession(token, pelanggan)
+                // 3. Jika lolos, simpan sesi admin
+                adminAuth.setSession(token, userData)
 
-                // Redirect ke dashboard admin
+                // 4. Redirect ke dashboard admin
                 this.$router.push('/admin/dashboard')
 
             } catch (err) {
                 if (err.response?.status === 422) {
                     const errors = err.response.data?.errors || {}
                     this.errorMsg = Object.values(errors).flat()[0] || 'Email atau password salah.'
-                } else if (err.response?.status === 401 || err.response?.status === 400) {
-                    this.errorMsg = 'Password salah.'
+                } else if (err.response?.status === 401) {
+                    this.errorMsg = 'Email atau password salah.'
                 } else {
                     this.errorMsg = err.response?.data?.message || 'Gagal login. Coba lagi.'
                 }
