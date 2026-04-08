@@ -75,8 +75,8 @@ export default {
             adminData: adminAuth.getData(),
             navItems: [
                 { label: 'Dashboard', icon: 'dashboard', to: '/admin/dashboard' },
-                { label: 'Obat (Inventory)', icon: 'medication', to: '/admin/obat' },
                 { label: 'Jenis Obat', icon: 'category', to: '/admin/jenis-obat' },
+                { label: 'Obat ', icon: 'medication', to: '/admin/obat' },
                 { label: 'Distributor', icon: 'local_shipping', to: '/admin/distributor' },
                 { label: 'Pembelian', icon: 'shopping_cart', to: '/admin/pembelian' },
                 { label: 'Detail Pembelian', icon: 'receipt_long', to: '/admin/detail-pembelian' },

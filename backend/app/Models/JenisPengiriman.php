@@ -17,4 +17,14 @@ class JenisPengiriman extends Model
         'nama_ekspedisi', 
         'logo_ekspedisi'
     ];
+    protected $appends = ['full_url_logo'];
+
+    // Ini fungsi untuk menyusun URL lengkapnya
+    public function getFullUrlLogoAttribute()
+    {
+        if ($this->logo_ekspedisi) {
+            return asset('storage/jenis_pengiriman/' . $this->logo_ekspedisi);
+        }
+        return null;
+    }
 }
