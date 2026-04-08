@@ -70,7 +70,7 @@ export default {
         },
         async updateStatus(row, newStatus) {
             try {
-                await adminApi.put(`/pengiriman/${row.id}`, { status_kirim: newStatus })
+                await adminApi.put(`/pengiriman-update/${row.id}`, { status_kirim: newStatus })
                 row.status_kirim = newStatus
                 if (newStatus === 'Diterima') row.tgl_tiba = new Date().toISOString()
                 this.showT('Status pengiriman diperbarui!')

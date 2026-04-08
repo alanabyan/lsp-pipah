@@ -75,7 +75,7 @@ Route::delete('/detail-penjualan/{id}', [DetailPenjualanController::class, 'dest
 
 Route::get('/pengiriman', [PengirimanController::class, 'index']);
 Route::post('/pengiriman', [PengirimanController::class, 'store']);
-Route::post('/pengiriman-update/{id}', [PengirimanController::class, 'update']);
+Route::put('/pengiriman-update/{id}', [PengirimanController::class, 'update']);
 Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy']);
 
 Route::get('/pembayaran', [PembayaranController::class, 'index']);

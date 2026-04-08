@@ -8,11 +8,11 @@
       </router-link>
 
       <!-- Nav Links -->
-      <nav class="navbar-nav" :class="{'hidden-nav' : isProfilePage}">
+      <nav class="navbar-nav" :class="{ 'hidden-nav': isProfilePage }">
         <a href="#jenis-obat" class="nav-link">Jenis Obat</a>
-        <a href="#katalog"    class="nav-link">Katalog</a>
-        <a href="#tentang"    class="nav-link">Tentang</a>
-        <a href="#kontak"     class="nav-link">Kontak</a>
+        <a href="#katalog" class="nav-link">Katalog</a>
+        <a href="#tentang" class="nav-link">Tentang</a>
+        <a href="#kontak" class="nav-link">Kontak</a>
       </nav>
 
       <!-- Actions -->
@@ -28,6 +28,8 @@
         <router-link v-if="!isLoggedIn" to="/register" class="btn btn--white">Daftar</router-link>
         <div v-if="isLoggedIn" class="user-menu profile" @click.self="goToProfile" style="cursor:pointer">
           <span class="material-symbols-outlined" @click="goToProfile">account_circle</span>
+        </div>
+        <div v-if="isLoggedIn" @click.self="goToProfile">
           <button class="btn btn--outline-white" @click.stop="logout">Keluar</button>
         </div>
       </div>
@@ -98,67 +100,130 @@ export default {
 
 <style scoped>
 .navbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   background: transparent;
   transition: background 0.3s, box-shadow 0.3s;
   padding: 0 2rem;
 }
+
 .navbar--scrolled {
   background: rgba(2, 28, 15, 0.97);
   backdrop-filter: blur(16px);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
+
 .hidden-nav {
   visibility: hidden;
   /* tetap ambil space tapi tidak terlihat */
 }
+
 .navbar-inner {
-  max-width: 1200px; margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto;
   height: 4.5rem;
-  display: flex; align-items: center; gap: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 /* Brand */
 .navbar-brand {
-  display: flex; align-items: center; gap: 0.5rem;
-  text-decoration: none; flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  flex-shrink: 0;
 }
-.brand-icon { font-size: 1.5rem; }
+
+.brand-icon {
+  font-size: 1.5rem;
+}
+
 .brand-text {
   font-family: 'Manrope', sans-serif;
-  font-size: 0.95rem; font-weight: 800;
-  color: #fff; letter-spacing: -0.01em;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
 }
-.brand-dot { color: #4ade80; }
+
+.brand-dot {
+  color: #4ade80;
+}
 
 /* Nav */
-.navbar-nav { display: flex; gap: 0.25rem; flex: 1; justify-content: center; }
+.navbar-nav {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: center;
+}
+
 .nav-link {
   padding: 0.4rem 0.85rem;
-  font-size: 0.85rem; font-weight: 600;
-  color: rgba(255,255,255,0.75);
-  text-decoration: none; border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  border-radius: 0.5rem;
   transition: color 0.15s, background 0.15s;
 }
-.nav-link:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+.nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
 
 /* Actions */
-.navbar-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .icon-btn {
-  background: rgba(255,255,255,0.1); border: none; cursor: pointer;
-  width: 2.25rem; height: 2.25rem; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; text-decoration: none; position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  cursor: pointer;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-decoration: none;
+  position: relative;
   transition: background 0.15s;
 }
-.icon-btn:hover { background: rgba(255,255,255,0.2); }
-.icon-btn .material-symbols-outlined { font-size: 1.15rem; }
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.icon-btn .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
 .cart-badge {
-  position: absolute; top: -4px; right: -4px;
-  background: #4ade80; color: #052e16;
-  font-size: 0.6rem; font-weight: 800;
-  width: 1rem; height: 1rem; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #4ade80;
+  color: #052e16;
+  font-size: 0.6rem;
+  font-weight: 800;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile {
@@ -167,16 +232,42 @@ export default {
 }
 
 .btn {
-  padding: 0.45rem 1rem; border-radius: 0.5rem;
-  font-size: 0.8rem; font-weight: 700; cursor: pointer;
-  transition: all 0.15s; text-decoration: none;
-  display: inline-flex; align-items: center;
+  padding: 0.45rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   font-family: inherit;
 }
-.btn--white { background: #fff; color: #064e3b; border: none; }
-.btn--white:hover { background: #d1fae5; }
-.btn--outline-white { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.35); }
-.btn--outline-white:hover { background: rgba(255,255,255,0.1); }
 
-.user-menu { display: flex; align-items: center; gap: 0.5rem; color: #fff; }
+.btn--white {
+  background: #fff;
+  color: #064e3b;
+  border: none;
+}
+
+.btn--white:hover {
+  background: #d1fae5;
+}
+
+.btn--outline-white {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.btn--outline-white:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+}
 </style>

@@ -138,15 +138,21 @@ export default {
     async handleLogin() {
       this.loading = true
       this.errorMsg = null
+
+      // Tolak login jika menggunakan email admin
+      if (this.form.email.toLowerCase() === 'admin@apotekonline.com') {
+        this.errorMsg = 'Email ini adalah akun admin. Silakan login melalui panel admin.'
+        this.loading = false
+        return
+      }
+
       try {
         const res = await api.post('/pelanggan/login', {
           email: this.form.email,
           password: this.form.password,
         })
-        // Simpan token
         localStorage.setItem('pelanggan_token', res.data.token)
         localStorage.setItem('pelanggan_data', JSON.stringify(res.data.pelanggan))
-        // Redirect ke home
         this.$router.push('/')
       } catch (err) {
         if (err.response?.status === 422) {
